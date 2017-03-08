@@ -148,12 +148,12 @@ macro_rules! __iota_replace {
     };
 
     // Open square bracket.
-    (($v:expr) ($($stack:tt)*) ($($first:tt)*) $($rest:tt)*) => {
+    (($v:expr) ($($stack:tt)*) [$($first:tt)*] $($rest:tt)*) => {
         __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_bracket $($rest)*)
     };
 
     // Open curly brace.
-    (($v:expr) ($($stack:tt)*) ($($first:tt)*) $($rest:tt)*) => {
+    (($v:expr) ($($stack:tt)*) {$($first:tt)*} $($rest:tt)*) => {
         __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_brace $($rest)*)
     };
 
@@ -204,4 +204,17 @@ fn test_iota() {
     assert_eq!(D, 3);
     assert_eq!(E, 8);
     assert_eq!(F, 10);
+}
+
+#[test]
+fn test_delimiters() {
+    const S: [u8; 3] = [4, 5, 6];
+    iota! {
+        const A: u8 = S[iota];
+        const B: (u8, u8) = (1 << iota, (1 << iota) - 1);
+        const C: u8 = { const X: u8 = iota; X * 2 };
+    }
+    assert_eq!(A, 4);
+    assert_eq!(B, (2, 1));
+    assert_eq!(C, 4);
 }
