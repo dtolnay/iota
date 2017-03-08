@@ -1,5 +1,5 @@
-iota! { /* ... */ }
-===================
+1 &lt;&lt; iota
+===============
 
 [![Build Status](https://api.travis-ci.org/dtolnay/iota.svg?branch=master)](https://travis-ci.org/dtolnay/iota)
 [![Latest Version](https://img.shields.io/crates/v/iota.svg)](https://crates.io/crates/iota)
