@@ -1,0 +1,192 @@
+//! The `iota!` macro constructs a set of related constants.
+//!
+//! ```rust
+//! #[macro_use]
+//! extern crate iota;
+//!
+//! iota! {
+//!     const A: u8 = 1 << iota;
+//!         | B
+//!         | C
+//!         | D
+//! }
+//!
+//! fn main() {
+//!     assert_eq!(A, 1);
+//!     assert_eq!(B, 2);
+//!     assert_eq!(C, 4);
+//!     assert_eq!(D, 8);
+//! }
+//! ```
+//!
+//! Within an `iota!` block, the `iota` variable is an untyped integer constant
+//! whose value begins at 0 and increments by 1 for every constant declared in
+//! the block.
+//!
+//! ```rust
+//! #[macro_use]
+//! extern crate iota;
+//!
+//! iota! {
+//!     const A: u8 = 1 << iota;
+//!         | B
+//!
+//!     const C: i32 = -1; // iota is not used but still incremented
+//!
+//!     pub const D: u8 = iota * 2;
+//!             | E
+//!             | F
+//! }
+//!
+//! // `iota` begins again from 0 in this block
+//! iota! {
+//!     const G: usize = 1 << (iota + 10);
+//!         | H
+//! }
+//!
+//! fn main() {
+//!     assert_eq!(A, 1 << 0);
+//!     assert_eq!(B, 1 << 1);
+//!
+//!     assert_eq!(C, -1);
+//!
+//!     assert_eq!(D, 3 * 2);
+//!     assert_eq!(E, 4 * 2);
+//!     assert_eq!(F, 5 * 2);
+//!
+//!     assert_eq!(G, 1 << (0 + 10));
+//!     assert_eq!(H, 1 << (1 + 10));
+//! }
+//! ```
+
+/// Please refer to the crate-level documentation.
+#[macro_export]
+macro_rules! iota {
+    (const $n:ident : $t:ty = $($rest:tt)+) => {
+        __iota_dup!((0) const $n : $t = $($rest)+);
+    };
+
+    (pub const $n:ident : $t:ty = $($rest:tt)+) => {
+        __iota_dup!((0) pub const $n : $t = $($rest)+);
+    };
+}
+
+// Duplicate the input tokens so we can match on one set and trigger errors on
+// the other set.
+#[macro_export]
+#[doc(hidden)]
+macro_rules! __iota_dup {
+    (($v:expr)) => {};
+
+    (($v:expr) const $n:ident : $t:ty = $($rest:tt)+) => {
+        __iota_impl!(($v) () () const $n : $t = ($($rest)+) ($($rest)+));
+    };
+
+    (($v:expr) pub const $n:ident : $t:ty = $($rest:tt)+) => {
+        __iota_impl!(($v) () (pub) const $n : $t = ($($rest)+) ($($rest)+));
+    };
+}
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! __iota_impl {
+    // ERROR: Premature semicolon.
+    //
+    //    const A: u8 = ;
+    (($v:expr) () $vis:tt const $n:ident : $t:ty = (; $($x:tt)*) ($semi:tt $($y:tt)*)) => {
+        // "no rules expected the token `;`"
+        __iota_impl!($semi);
+    };
+
+    // ERROR: Unexpected const, probably due to a missing semicolon.
+    //
+    //    const A: u8 = 1 << iota
+    //    const B: u8 = 0;
+    (($v:expr) ($($seen:tt)*) $vis:tt const $n:ident : $t:ty = (const $($x:tt)*) ($cons:tt $($y:tt)*)) => {
+        // "no rules expected the token `const`"
+        __iota_impl!($cons);
+    };
+
+    // ERROR: Missing final semicolon.
+    //
+    //    const A: u8 = 1 << iota
+    (($v:expr) ($($seen:tt)*) $vis:tt const $n:ident : $t:ty = () $y:tt) => {
+        // "unexpected end of macro invocation"
+        __iota_impl!();
+    };
+
+    // OK: Emit a const and reuse the same expression for the next one.
+    //
+    //    const A: u8 = 1 << iota;
+    //        | B
+    (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; | $i:ident $($rest:tt)*) $y:tt) => {
+        $($vis)* const $n : $t = __iota_replace!($v, () $($seen)+);
+        __iota_impl!(($v + 1) ($($seen)+) ($($vis)*) const $i : $t = (; $($rest)*) (; $($rest)*));
+    };
+
+    // OK: Emit a const and use a different expression for the next one, if any.
+    (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; $($rest:tt)*) $y:tt) => {
+        $($vis)* const $n : $t = __iota_replace!($v, () $($seen)+);
+        __iota_dup!(($v + 1) $($rest)*);
+    };
+
+    // OK: Munch a token into the expression for the current const.
+    (($v:expr) ($($seen:tt)*) $vis:tt const $n:ident : $t:ty = ($first:tt $($rest:tt)*) $y:tt) => {
+        __iota_impl!(($v) ($($seen)* $first) $vis const $n : $t = ($($rest)*) ($($rest)*));
+    };
+
+    // DONE.
+    (($v:expr) ()) => {};
+}
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! __iota_replace {
+    // Replace `iota` token with the intended expression.
+    ($v:expr, ($($seen:tt)*) iota $($rest:tt)*) => {
+        __iota_replace!($v, ($($seen)* $v) $($rest)*)
+    };
+
+    // Recursively replace content inside parentheses.
+    ($v:expr, ($($seen:tt)*) ($($first:tt)*) $($rest:tt)*) => {
+        __iota_replace!($v, ($($seen)* (__iota_replace!($v, () $($first)*))) $($rest)*)
+    };
+
+    // Recursively replace content inside square brackets.
+    ($v:expr, ($($seen:tt)*) [$($first:tt)*] $($rest:tt)*) => {
+        __iota_replace!($v, ($($seen)* [__iota_replace!($v, () $($first)*)]) $($rest)*)
+    };
+
+    // Recursively replace content inside curly braces.
+    ($v:expr, ($($seen:tt)*) {$($first:tt)*} $($rest:tt)*) => {
+        __iota_replace!($v, ($($seen)* {__iota_replace!($v, () $($first)*)}) $($rest)*)
+    };
+
+    // Munch a token that is not `iota`.
+    ($v:expr, ($($seen:tt)*) $first:tt $($rest:tt)*) => {
+        __iota_replace!($v, ($($seen)* $first) $($rest)*)
+    };
+
+    // Done.
+    ($v:expr, ($($seen:tt)+)) => {
+        $($seen)+
+    };
+}
+
+#[test]
+fn test_iota() {
+    iota! {
+        const A: u8 = 1 << iota;
+            | B
+            | C
+        const D: usize = 3;
+        const E: i64 = iota * 2;
+            | F
+    }
+    assert_eq!(A, 1);
+    assert_eq!(B, 2);
+    assert_eq!(C, 4);
+    assert_eq!(D, 3);
+    assert_eq!(E, 8);
+    assert_eq!(F, 10);
+}
