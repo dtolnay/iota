@@ -120,13 +120,13 @@ macro_rules! __iota_impl {
     //    const A: u8 = 1 << iota;
     //        | B
     (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; | $i:ident $($rest:tt)*) $y:tt) => {
-        $($vis)* const $n : $t = __iota_replace!($v, () $($seen)+);
+        $($vis)* const $n : $t = __iota_replace!(($v) () $($seen)+);
         __iota_impl!(($v + 1) ($($seen)+) ($($vis)*) const $i : $t = (; $($rest)*) (; $($rest)*));
     };
 
     // OK: Emit a const and use a different expression for the next one, if any.
     (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; $($rest:tt)*) $y:tt) => {
-        $($vis)* const $n : $t = __iota_replace!($v, () $($seen)+);
+        $($vis)* const $n : $t = __iota_replace!(($v) () $($seen)+);
         __iota_dup!(($v + 1) $($rest)*);
     };
 
@@ -143,32 +143,32 @@ macro_rules! __iota_impl {
 #[doc(hidden)]
 macro_rules! __iota_replace {
     // Replace `iota` token with the intended expression.
-    ($v:expr, ($($seen:tt)*) iota $($rest:tt)*) => {
-        __iota_replace!($v, ($($seen)* $v) $($rest)*)
+    (($v:expr) ($($seen:tt)*) iota $($rest:tt)*) => {
+        __iota_replace!(($v) ($($seen)* $v) $($rest)*)
     };
 
     // Recursively replace content inside parentheses.
-    ($v:expr, ($($seen:tt)*) ($($first:tt)*) $($rest:tt)*) => {
-        __iota_replace!($v, ($($seen)* (__iota_replace!($v, () $($first)*))) $($rest)*)
+    (($v:expr) ($($seen:tt)*) ($($first:tt)*) $($rest:tt)*) => {
+        __iota_replace!(($v) ($($seen)* (__iota_replace!(($v) () $($first)*))) $($rest)*)
     };
 
     // Recursively replace content inside square brackets.
-    ($v:expr, ($($seen:tt)*) [$($first:tt)*] $($rest:tt)*) => {
-        __iota_replace!($v, ($($seen)* [__iota_replace!($v, () $($first)*)]) $($rest)*)
+    (($v:expr) ($($seen:tt)*) [$($first:tt)*] $($rest:tt)*) => {
+        __iota_replace!(($v) ($($seen)* [__iota_replace!(($v) () $($first)*)]) $($rest)*)
     };
 
     // Recursively replace content inside curly braces.
-    ($v:expr, ($($seen:tt)*) {$($first:tt)*} $($rest:tt)*) => {
-        __iota_replace!($v, ($($seen)* {__iota_replace!($v, () $($first)*)}) $($rest)*)
+    (($v:expr) ($($seen:tt)*) {$($first:tt)*} $($rest:tt)*) => {
+        __iota_replace!(($v) ($($seen)* {__iota_replace!(($v) () $($first)*)}) $($rest)*)
     };
 
     // Munch a token that is not `iota`.
-    ($v:expr, ($($seen:tt)*) $first:tt $($rest:tt)*) => {
-        __iota_replace!($v, ($($seen)* $first) $($rest)*)
+    (($v:expr) ($($seen:tt)*) $first:tt $($rest:tt)*) => {
+        __iota_replace!(($v) ($($seen)* $first) $($rest)*)
     };
 
     // Done.
-    ($v:expr, ($($seen:tt)+)) => {
+    (($v:expr) ($($seen:tt)+)) => {
         $($seen)+
     };
 }
