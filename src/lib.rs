@@ -120,13 +120,13 @@ macro_rules! __iota_impl {
     //    const A: u8 = 1 << iota;
     //        | B
     (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; | $i:ident $($rest:tt)*) $y:tt) => {
-        $($vis)* const $n : $t = __iota_replace!(($v) () $($seen)+);
+        $($vis)* const $n : $t = __iota_replace!(($v) (()) $($seen)+);
         __iota_impl!(($v + 1) ($($seen)+) ($($vis)*) const $i : $t = (; $($rest)*) (; $($rest)*));
     };
 
     // OK: Emit a const and use a different expression for the next one, if any.
     (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; $($rest:tt)*) $y:tt) => {
-        $($vis)* const $n : $t = __iota_replace!(($v) () $($seen)+);
+        $($vis)* const $n : $t = __iota_replace!(($v) (()) $($seen)+);
         __iota_dup!(($v + 1) $($rest)*);
     };
 
@@ -142,34 +142,49 @@ macro_rules! __iota_impl {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __iota_replace {
+    // Open parenthesis.
+    (($v:expr) ($($stack:tt)*) ($($first:tt)*) $($rest:tt)*) => {
+        __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_paren $($rest)*)
+    };
+
+    // Open square bracket.
+    (($v:expr) ($($stack:tt)*) ($($first:tt)*) $($rest:tt)*) => {
+        __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_bracket $($rest)*)
+    };
+
+    // Open curly brace.
+    (($v:expr) ($($stack:tt)*) ($($first:tt)*) $($rest:tt)*) => {
+        __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_brace $($rest)*)
+    };
+
+    // Close parenthesis.
+    (($v:expr) (($($close:tt)*) ($($top:tt)*) $($stack:tt)*) __iota_close_paren $($rest:tt)*) => {
+        __iota_replace!(($v) (($($top)* ($($close)*)) $($stack)*) $($rest)*)
+    };
+
+    // Close square bracket.
+    (($v:expr) (($($close:tt)*) ($($top:tt)*) $($stack:tt)*) __iota_close_bracket $($rest:tt)*) => {
+        __iota_replace!(($v) (($($top)* [$($close)*]) $($stack)*) $($rest)*)
+    };
+
+    // Close curly brace.
+    (($v:expr) (($($close:tt)*) ($($top:tt)*) $($stack:tt)*) __iota_close_brace $($rest:tt)*) => {
+        __iota_replace!(($v) (($($top)* {$($close)*}) $($stack)*) $($rest)*)
+    };
+
     // Replace `iota` token with the intended expression.
-    (($v:expr) ($($seen:tt)*) iota $($rest:tt)*) => {
-        __iota_replace!(($v) ($($seen)* $v) $($rest)*)
-    };
-
-    // Recursively replace content inside parentheses.
-    (($v:expr) ($($seen:tt)*) ($($first:tt)*) $($rest:tt)*) => {
-        __iota_replace!(($v) ($($seen)* (__iota_replace!(($v) () $($first)*))) $($rest)*)
-    };
-
-    // Recursively replace content inside square brackets.
-    (($v:expr) ($($seen:tt)*) [$($first:tt)*] $($rest:tt)*) => {
-        __iota_replace!(($v) ($($seen)* [__iota_replace!(($v) () $($first)*)]) $($rest)*)
-    };
-
-    // Recursively replace content inside curly braces.
-    (($v:expr) ($($seen:tt)*) {$($first:tt)*} $($rest:tt)*) => {
-        __iota_replace!(($v) ($($seen)* {__iota_replace!(($v) () $($first)*)}) $($rest)*)
+    (($v:expr) (($($top:tt)*) $($stack:tt)*) iota $($rest:tt)*) => {
+        __iota_replace!(($v) (($($top)* $v) $($stack)*) $($rest)*)
     };
 
     // Munch a token that is not `iota`.
-    (($v:expr) ($($seen:tt)*) $first:tt $($rest:tt)*) => {
-        __iota_replace!(($v) ($($seen)* $first) $($rest)*)
+    (($v:expr) (($($top:tt)*) $($stack:tt)*) $first:tt $($rest:tt)*) => {
+        __iota_replace!(($v) (($($top)* $first) $($stack)*) $($rest)*)
     };
 
     // Done.
-    (($v:expr) ($($seen:tt)+)) => {
-        $($seen)+
+    (($v:expr) (($($top:tt)+))) => {
+        $($top)+
     };
 }
 
