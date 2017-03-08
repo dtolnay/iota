@@ -2,7 +2,6 @@
 ===============
 
 [![Build Status](https://api.travis-ci.org/dtolnay/iota.svg?branch=master)](https://travis-ci.org/dtolnay/iota)
-[![Latest Version](https://img.shields.io/crates/v/iota.svg)](https://crates.io/crates/iota)
 
 The `iota!` macro constructs a set of related constants.
 
