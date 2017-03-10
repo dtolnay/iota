@@ -6,6 +6,11 @@
 
 The `iota!` macro constructs a set of related constants.
 
+```toml
+[dependencies]
+iota = "0.1"
+```
+
 ```rust
 #[macro_use]
 extern crate iota;
