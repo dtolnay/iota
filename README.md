@@ -12,8 +12,7 @@ iota = "0.1"
 ```
 
 ```rust
-#[macro_use]
-extern crate iota;
+use iota::iota;
 
 iota! {
     const A: u8 = 1 << iota;
@@ -35,8 +34,7 @@ whose value begins at 0 and increments by 1 for every constant declared in
 the block.
 
 ```rust
-#[macro_use]
-extern crate iota;
+use iota::iota;
 
 iota! {
     const A: u8 = 1 << iota;

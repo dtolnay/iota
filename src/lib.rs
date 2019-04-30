@@ -1,8 +1,7 @@
 //! The `iota!` macro constructs a set of related constants.
 //!
 //! ```rust
-//! #[macro_use]
-//! extern crate iota;
+//! use iota::iota;
 //!
 //! iota! {
 //!     const A: u8 = 1 << iota;
@@ -24,8 +23,7 @@
 //! the block.
 //!
 //! ```rust
-//! #[macro_use]
-//! extern crate iota;
+//! use iota::iota;
 //!
 //! iota! {
 //!     const A: u8 = 1 << iota;
@@ -63,11 +61,11 @@
 #[macro_export]
 macro_rules! iota {
     (const $n:ident : $t:ty = $($rest:tt)+) => {
-        __iota_dup!((0) const $n : $t = $($rest)+);
+        $crate::__iota_dup!((0) const $n : $t = $($rest)+);
     };
 
     (pub const $n:ident : $t:ty = $($rest:tt)+) => {
-        __iota_dup!((0) pub const $n : $t = $($rest)+);
+        $crate::__iota_dup!((0) pub const $n : $t = $($rest)+);
     };
 }
 
@@ -79,11 +77,11 @@ macro_rules! __iota_dup {
     (($v:expr)) => {};
 
     (($v:expr) const $n:ident : $t:ty = $($rest:tt)+) => {
-        __iota_impl!(($v) () () const $n : $t = ($($rest)+) ($($rest)+));
+        $crate::__iota_impl!(($v) () () const $n : $t = ($($rest)+) ($($rest)+));
     };
 
     (($v:expr) pub const $n:ident : $t:ty = $($rest:tt)+) => {
-        __iota_impl!(($v) () (pub) const $n : $t = ($($rest)+) ($($rest)+));
+        $crate::__iota_impl!(($v) () (pub) const $n : $t = ($($rest)+) ($($rest)+));
     };
 }
 
@@ -95,7 +93,7 @@ macro_rules! __iota_impl {
     //    const A: u8 = ;
     (($v:expr) () $vis:tt const $n:ident : $t:ty = (; $($x:tt)*) ($semi:tt $($y:tt)*)) => {
         // "no rules expected the token `;`"
-        __iota_impl!($semi);
+        $crate::__iota_impl!($semi);
     };
 
     // ERROR: Unexpected const, probably due to a missing semicolon.
@@ -104,7 +102,7 @@ macro_rules! __iota_impl {
     //    const B: u8 = 0;
     (($v:expr) ($($seen:tt)*) $vis:tt const $n:ident : $t:ty = (const $($x:tt)*) ($cons:tt $($y:tt)*)) => {
         // "no rules expected the token `const`"
-        __iota_impl!($cons);
+        $crate::__iota_impl!($cons);
     };
 
     // ERROR: Missing final semicolon.
@@ -112,7 +110,7 @@ macro_rules! __iota_impl {
     //    const A: u8 = 1 << iota
     (($v:expr) ($($seen:tt)*) $vis:tt const $n:ident : $t:ty = () $y:tt) => {
         // "unexpected end of macro invocation"
-        __iota_impl!();
+        $crate::__iota_impl!();
     };
 
     // OK: Emit a const and reuse the same expression for the next one.
@@ -120,19 +118,19 @@ macro_rules! __iota_impl {
     //    const A: u8 = 1 << iota;
     //        | B
     (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; | $i:ident $($rest:tt)*) $y:tt) => {
-        $($vis)* const $n : $t = __iota_replace!(($v) (()) $($seen)+);
-        __iota_impl!(($v + 1) ($($seen)+) ($($vis)*) const $i : $t = (; $($rest)*) (; $($rest)*));
+        $($vis)* const $n : $t = $crate::__iota_replace!(($v) (()) $($seen)+);
+        $crate::__iota_impl!(($v + 1) ($($seen)+) ($($vis)*) const $i : $t = (; $($rest)*) (; $($rest)*));
     };
 
     // OK: Emit a const and use a different expression for the next one, if any.
     (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; $($rest:tt)*) $y:tt) => {
-        $($vis)* const $n : $t = __iota_replace!(($v) (()) $($seen)+);
-        __iota_dup!(($v + 1) $($rest)*);
+        $($vis)* const $n : $t = $crate::__iota_replace!(($v) (()) $($seen)+);
+        $crate::__iota_dup!(($v + 1) $($rest)*);
     };
 
     // OK: Munch a token into the expression for the current const.
     (($v:expr) ($($seen:tt)*) $vis:tt const $n:ident : $t:ty = ($first:tt $($rest:tt)*) $y:tt) => {
-        __iota_impl!(($v) ($($seen)* $first) $vis const $n : $t = ($($rest)*) ($($rest)*));
+        $crate::__iota_impl!(($v) ($($seen)* $first) $vis const $n : $t = ($($rest)*) ($($rest)*));
     };
 
     // DONE.
@@ -144,42 +142,42 @@ macro_rules! __iota_impl {
 macro_rules! __iota_replace {
     // Open parenthesis.
     (($v:expr) ($($stack:tt)*) ($($first:tt)*) $($rest:tt)*) => {
-        __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_paren $($rest)*)
+        $crate::__iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_paren $($rest)*)
     };
 
     // Open square bracket.
     (($v:expr) ($($stack:tt)*) [$($first:tt)*] $($rest:tt)*) => {
-        __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_bracket $($rest)*)
+        $crate::__iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_bracket $($rest)*)
     };
 
     // Open curly brace.
     (($v:expr) ($($stack:tt)*) {$($first:tt)*} $($rest:tt)*) => {
-        __iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_brace $($rest)*)
+        $crate::__iota_replace!(($v) (() $($stack)*) $($first)* __iota_close_brace $($rest)*)
     };
 
     // Close parenthesis.
     (($v:expr) (($($close:tt)*) ($($top:tt)*) $($stack:tt)*) __iota_close_paren $($rest:tt)*) => {
-        __iota_replace!(($v) (($($top)* ($($close)*)) $($stack)*) $($rest)*)
+        $crate::__iota_replace!(($v) (($($top)* ($($close)*)) $($stack)*) $($rest)*)
     };
 
     // Close square bracket.
     (($v:expr) (($($close:tt)*) ($($top:tt)*) $($stack:tt)*) __iota_close_bracket $($rest:tt)*) => {
-        __iota_replace!(($v) (($($top)* [$($close)*]) $($stack)*) $($rest)*)
+        $crate::__iota_replace!(($v) (($($top)* [$($close)*]) $($stack)*) $($rest)*)
     };
 
     // Close curly brace.
     (($v:expr) (($($close:tt)*) ($($top:tt)*) $($stack:tt)*) __iota_close_brace $($rest:tt)*) => {
-        __iota_replace!(($v) (($($top)* {$($close)*}) $($stack)*) $($rest)*)
+        $crate::__iota_replace!(($v) (($($top)* {$($close)*}) $($stack)*) $($rest)*)
     };
 
     // Replace `iota` token with the intended expression.
     (($v:expr) (($($top:tt)*) $($stack:tt)*) iota $($rest:tt)*) => {
-        __iota_replace!(($v) (($($top)* $v) $($stack)*) $($rest)*)
+        $crate::__iota_replace!(($v) (($($top)* $v) $($stack)*) $($rest)*)
     };
 
     // Munch a token that is not `iota`.
     (($v:expr) (($($top:tt)*) $($stack:tt)*) $first:tt $($rest:tt)*) => {
-        __iota_replace!(($v) (($($top)* $first) $($stack)*) $($rest)*)
+        $crate::__iota_replace!(($v) (($($top)* $first) $($stack)*) $($rest)*)
     };
 
     // Done.
