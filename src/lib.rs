@@ -1,6 +1,6 @@
 //! The `iota!` macro constructs a set of related constants.
 //!
-//! ```rust
+//! ```
 //! use iota::iota;
 //!
 //! iota! {
@@ -22,7 +22,7 @@
 //! whose value begins at 0 and increments by 1 for every constant declared in
 //! the block.
 //!
-//! ```rust
+//! ```
 //! use iota::iota;
 //!
 //! iota! {
