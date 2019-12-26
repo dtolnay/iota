@@ -4,11 +4,11 @@ use iota::iota;
 fn test_iota() {
     iota! {
         const A: u8 = 1 << iota;
-            | B
-            | C
+            , B
+            , C
         const D: usize = 3;
         const E: i64 = iota * 2;
-            | F
+            , F
     }
     assert_eq!(A, 1);
     assert_eq!(B, 2);

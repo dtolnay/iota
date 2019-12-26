@@ -16,9 +16,9 @@ use iota::iota;
 
 iota! {
     const A: u8 = 1 << iota;
-        | B
-        | C
-        | D
+        , B
+        , C
+        , D
 }
 
 fn main() {
@@ -38,19 +38,19 @@ use iota::iota;
 
 iota! {
     const A: u8 = 1 << iota;
-        | B
+        , B
 
     const C: i32 = -1; // iota is not used but still incremented
 
     pub const D: u8 = iota * 2;
-            | E
-            | F
+        , E
+        , F
 }
 
 // `iota` begins again from 0 in this block
 iota! {
     const G: usize = 1 << (iota + 10);
-        | H
+        , H
 }
 
 fn main() {

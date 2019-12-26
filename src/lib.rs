@@ -5,9 +5,9 @@
 //!
 //! iota! {
 //!     const A: u8 = 1 << iota;
-//!         | B
-//!         | C
-//!         | D
+//!         , B
+//!         , C
+//!         , D
 //! }
 //!
 //! fn main() {
@@ -27,19 +27,19 @@
 //!
 //! iota! {
 //!     const A: u8 = 1 << iota;
-//!         | B
+//!         , B
 //!
 //!     const C: i32 = -1; // iota is not used but still incremented
 //!
 //!     pub const D: u8 = iota * 2;
-//!             | E
-//!             | F
+//!         , E
+//!         , F
 //! }
 //!
 //! // `iota` begins again from 0 in this block
 //! iota! {
 //!     const G: usize = 1 << (iota + 10);
-//!         | H
+//!         , H
 //! }
 //!
 //! fn main() {
@@ -116,8 +116,8 @@ macro_rules! __iota_impl {
     // OK: Emit a const and reuse the same expression for the next one.
     //
     //    const A: u8 = 1 << iota;
-    //        | B
-    (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; | $i:ident $($rest:tt)*) $y:tt) => {
+    //        , B
+    (($v:expr) ($($seen:tt)+) ($($vis:tt)*) const $n:ident : $t:ty = (; , $i:ident $($rest:tt)*) $y:tt) => {
         $($vis)* const $n : $t = $crate::__iota_replace!(($v) (()) $($seen)+);
         $crate::__iota_impl!(($v + 1) ($($seen)+) ($($vis)*) const $i : $t = (; $($rest)*) (; $($rest)*));
     };
