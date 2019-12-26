@@ -8,7 +8,7 @@ The `iota!` macro constructs a set of related constants.
 
 ```toml
 [dependencies]
-iota = "0.1"
+iota = "0.2"
 ```
 
 ```rust
