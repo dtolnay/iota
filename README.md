@@ -1,7 +1,7 @@
 1 &lt;&lt; iota
 ===============
 
-[![Build Status](https://api.travis-ci.org/dtolnay/iota.svg?branch=master)](https://travis-ci.org/dtolnay/iota)
+[![Build Status](https://img.shields.io/github/workflow/status/dtolnay/iota/CI/master)](https://github.com/dtolnay/iota/actions?query=branch%3Amaster)
 [![Latest Version](https://img.shields.io/crates/v/iota.svg)](https://crates.io/crates/iota)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/iota)
 
