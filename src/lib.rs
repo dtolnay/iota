@@ -65,6 +65,8 @@
 //! }
 //! ```
 
+#![allow(clippy::needless_doctest_main)]
+
 /// Please refer to the crate-level documentation.
 #[macro_export]
 macro_rules! iota {
