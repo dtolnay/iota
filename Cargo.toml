@@ -3,6 +3,7 @@ name = "iota"
 version = "0.2.2"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 edition = "2018"
+rust-version = "1.31"
 license = "MIT OR Apache-2.0"
 description = "Related constants: 1 << iota"
 repository = "https://github.com/dtolnay/iota"
