@@ -2,13 +2,13 @@
 name = "iota"
 version = "0.2.2"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
-edition = "2018"
-rust-version = "1.31"
-license = "MIT OR Apache-2.0"
 description = "Related constants: 1 << iota"
-repository = "https://github.com/dtolnay/iota"
 documentation = "https://docs.rs/iota/"
+edition = "2018"
+license = "MIT OR Apache-2.0"
 readme = "README.md"
+repository = "https://github.com/dtolnay/iota"
+rust-version = "1.31"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
