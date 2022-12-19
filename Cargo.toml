@@ -1,6 +1,6 @@
 [package]
 name = "iota"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 description = "Related constants: 1 << iota"
 documentation = "https://docs.rs/iota/"
